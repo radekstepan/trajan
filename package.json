@@ -9,6 +9,7 @@
         "flatiron": "0.3.3",
         "director": "1.1.10",
         "union": "0.3.6",
-        "connect": "1.9.2"
+        "connect": "1.9.2",
+        "http-proxy": "0.8.7"
     }
 }

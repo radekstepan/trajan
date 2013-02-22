@@ -1,6 +1,9 @@
 flatiron = require '../node_modules/flatiron'
 director = require '../node_modules/director'
 
+# Generate an id of our "unique" app.
+id = Math.random().toString(36).substr(7)
+
 # Are we exiting?
 exiting = false
 # Stack of our jobs.
@@ -24,20 +27,19 @@ app.use flatiron.plugins.http,
 
 # Director routes.
 app.router = new director.http.Router
+    # A long job.
     '/api':
-        # A long job.
-        '/long':        
-            get: ->
-                console.log 'Child is handling request'
-                jobs.push true
-                setTimeout =>
-                    # Respond.
-                    @res.writeHead 200, 'content-type': 'application/json'
-                    @res.write JSON.stringify 'message': 'Hello World!'
-                    @res.end()
-                    # Finished "this" job.
-                    jobs.pop()
-                , 5000 # take 5s
+        get: ->
+            console.log 'Child is handling request'
+            jobs.push true
+            setTimeout =>
+                # Respond.
+                @res.writeHead 200
+                @res.write JSON.stringify id
+                @res.end()
+                # Finished "this" job.
+                jobs.pop()
+            , 2000 # take 2s
 
 # Start the app.
 app.start process.env.PORT, (err) ->
@@ -61,7 +63,7 @@ process.on 'message', (data) ->
             if jobs.length is 0
                 app.server.close ->
                     console.log 'Child closed remaining connections'
-                    process.exit()
+                    process.exit(0)
              
                 # Forcefully die in 30s if we cannot exit normally.
                 setTimeout ->
