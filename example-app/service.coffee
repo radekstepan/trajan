@@ -35,7 +35,7 @@ app.router = new director.http.Router
             setTimeout =>
                 # Respond.
                 @res.writeHead 200
-                @res.write JSON.stringify id
+                @res.write id
                 @res.end()
                 # Finished "this" job.
                 jobs.pop()
