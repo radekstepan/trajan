@@ -1,0 +1,14 @@
+{
+    "name": "samfelld",
+    "version": "0.1.0",
+    "dependencies": {
+        "coffee-script": "1.4.0",
+        "request": "2.14.0",
+        "underscore": "1.4.4",
+        "winston": "0.6.2",
+        "flatiron": "0.3.3",
+        "director": "1.1.10",
+        "union": "0.3.6",
+        "connect": "1.9.2"
+    }
+}
