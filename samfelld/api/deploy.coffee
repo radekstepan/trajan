@@ -23,7 +23,7 @@ module.exports =
             .pipe(tar.Extract({ 'path': './apps/' }))
             # Handle further...
             .on 'end', ->
-                winston.debug 'Spanwing app'
+                winston.debug 'Spawning app'
 
                 # Manifold.
                 pid = manifold.spawn name
