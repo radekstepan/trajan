@@ -6,8 +6,8 @@ winston       = require 'winston'
 # Nice logging.
 winston.cli()
 
-# Link to main manifold.
-{ manifold } = require '../../samfelld.coffee'
+# Link to main manifold & processes.
+{ manifold, processes } = require '../../samfelld.coffee'
 
 exports.post = ->
     winston.debug 'Deploying app'
@@ -19,6 +19,9 @@ exports.post = ->
     app = child_process.fork './example-app/start.js',
         # 'env': _.extend { 'PORT': 7000 }, process.env
         'silent': true
+
+    # Save pid.
+    processes.save app.pid
 
     winston.info "Deploying app #{('pid '+app.pid).bold}"
 
@@ -36,7 +39,9 @@ exports.post = ->
 onExit = (code) ->
     winston.warn "App #{('pid '+@pid).bold} exited"
     # Remove it from the going down stack.
-    manifold.removeDyno(@pid)
+    manifold.removeDyno @pid
+    # Remove from pids.
+    processes.remove @pid
 
 onMessage = (data) ->
     switch data.message

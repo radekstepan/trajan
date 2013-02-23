@@ -9,6 +9,10 @@ fs            = require 'fs'
 # Nice logging.
 winston.cli()
 
+# Load processes.
+Processes = require './samfelld/processes.coffee'
+module.exports.processes = new Processes()
+
 # Load manifold.
 Manifold = require './samfelld/manifold.coffee'
 module.exports.manifold = new Manifold()

@@ -1,4 +1,5 @@
 #!/usr/bin/env coffee
+
 class Manifold
 
     # All dynos we know of.
@@ -24,7 +25,7 @@ class Manifold
 
     # Remove a dyno that has wound down.
     removeDyno: (pid) -> delete @dynos.down[pid]
-
+    
     # Ask existing dynos to wind down.
     offlineDynos: ->
         while dyno = @dynos.up.pop()
