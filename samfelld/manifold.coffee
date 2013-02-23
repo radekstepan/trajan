@@ -1,4 +1,5 @@
 #!/usr/bin/env coffee
+{ processes } = require '../samfelld.coffee'
 
 class Manifold
 
@@ -13,8 +14,7 @@ class Manifold
             @stack.push dyno
             return dyno.port
 
-    # Get back a dyno.
-    getDyno: (pid) ->
+    _findDyno: (pid) ->
         # Enforce int.
         pid = parseInt pid
         # All statuses.
@@ -22,6 +22,19 @@ class Manifold
             ret = (dyno) -> { 'port': dyno.port, 'status': status }
             if (dyno = ( ret(dyno) for dyno in @dynos[status] when dyno.pid is pid ).pop())
                 return dyno
+
+    # Get back a dyno.
+    getDyno: (pid, cb) ->
+        if dyno = @_findDyno pid
+            # Now get the usage.
+            processes.getUsage pid, (data) ->
+                dyno.memory = data
+                cb dyno
+        else
+            cb null
+
+    # Get all dynos back.
+    getDynos: (cb) ->
 
     # Remove a dyno that has wound down.
     removeDyno: (pid) -> delete @dynos.down[pid]

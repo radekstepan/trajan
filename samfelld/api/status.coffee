@@ -16,9 +16,16 @@ module.exports =
         req = @req
         res = @res
 
-        res.writeHead 200, 'content-type': 'application/json'
-        res.write JSON.stringify 'dynos': manifold
-        res.end()
+        # Get all dynos back.
+        manifold.getDynos (dynos) ->
+            if dynos
+                res.writeHead 200, 'content-type': 'application/json'
+                res.write JSON.stringify 'dynos': dynos
+                res.end()
+            else
+                res.writeHead 404, 'content-type': 'application/json'
+                res.write JSON.stringify 'message': 'No dynos found'
+                res.end()
 
     '/:pid':
         get: (pid) ->
@@ -28,11 +35,12 @@ module.exports =
             res = @res
 
             # Find a single dyno.
-            if dyno = manifold.getDyno(pid)
-                res.writeHead 200, 'content-type': 'application/json'
-                res.write JSON.stringify 'dyno': dyno
-                res.end()
-            else
-                res.writeHead 404, 'content-type': 'application/json'
-                res.write JSON.stringify 'message': 'Dyno not found'
-                res.end()
+            manifold.getDyno pid, (dyno) ->
+                if dyno
+                    res.writeHead 200, 'content-type': 'application/json'
+                    res.write JSON.stringify 'dyno': dyno
+                    res.end()
+                else                    
+                    res.writeHead 404, 'content-type': 'application/json'
+                    res.write JSON.stringify 'message': 'Dyno not found'
+                    res.end()
