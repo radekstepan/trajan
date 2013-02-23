@@ -26,9 +26,9 @@ class Manifold
     # Get back a dyno.
     getDyno: (pid, cb) ->
         if dyno = @_findDyno pid
-            # Now get the usage.
-            processes.getUsage pid, (data) ->
-                dyno.memory = data
+            # Now get the stats about the process.
+            processes.getStats pid, (stats) ->
+                if stats then dyno.stats = stats
                 cb dyno
         else
             cb null

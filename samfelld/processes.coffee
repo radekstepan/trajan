@@ -40,13 +40,23 @@ class Processes
         # Into a file.
         # fs.writeFileSync @FILE, JSON.stringify(@pids, null, 4), 'utf-8'
 
-    # Get memory usage for a process.
-    getUsage: (pid, cb) ->
+    # Get stats about a process.
+    getStats: (pid, cb) ->
         # Total VM size in kB.
-        child_process.exec "ps -p #{pid} -o vsize=", (err, stdout, stderr) ->
-            if err or stderr then cb null
+        child_process.exec "ps -p #{pid} -o %cpu,%mem,cmd", (err, stdout, stderr) ->
+            if err or stderr.length isnt 0 then cb null
             else
-                # Convert to a nice value.
-                cb (parseInt(stdout) / 1024).toFixed(1) + ' MB'
+                # Trim whitespace from ends.
+                trim = (str) -> str.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+                # Remove extra whitespace.
+                spaces = (str) -> str.replace(/\s\s+/g, ' ')
+
+                # Parse the output.
+                [ cpu, mem, cmd... ] = spaces(trim(stdout.split('\n')[1])).split(' ')
+
+                cb
+                    'cpu': cpu + '%'
+                    'mem': mem + '%'
+                    'cmd': cmd
 
 module.exports = Processes

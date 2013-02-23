@@ -13,6 +13,8 @@ start (cfg) ->
             'x-auth-token': 'abc'
     , (err, res, body) ->
         if err then throw err
+
+        body = JSON.stringify JSON.parse(body), null, 4
         console.log "#{res.statusCode}: #{body}"
 
         { pid } = JSON.parse body
@@ -26,6 +28,9 @@ start (cfg) ->
                     'x-auth-token': 'abc'
             , (err, res, body) ->
                 if err then throw err
+
+                body = JSON.stringify JSON.parse(body), null, 4
                 console.log "#{res.statusCode}: #{body}"
+                
                 # Check again.
                 setTimeout status, 1000
