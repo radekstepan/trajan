@@ -1,4 +1,6 @@
 #!/usr/bin/env coffee
+async = require 'async'
+
 { processes } = require '../samfelld.coffee'
 
 class Manifold
@@ -19,8 +21,8 @@ class Manifold
         pid = parseInt pid
         # All statuses.
         for status in [ 'up', 'down' ]
-            ret = (dyno) -> { 'port': dyno.port, 'status': status }
-            if (dyno = ( ret(dyno) for dyno in @dynos[status] when dyno.pid is pid ).pop())
+            pkg = (dyno) -> { 'port': dyno.port, 'pid': dyno.pid, 'status': status }
+            if (dyno = ( pkg(dyno) for dyno in @dynos[status] when dyno.pid is pid ).pop())
                 return dyno
 
     # Get back a dyno.
@@ -35,6 +37,23 @@ class Manifold
 
     # Get all dynos back.
     getDynos: (cb) ->
+        fns = []
+        for status in [ 'up', 'down' ]
+            for dyno in @dynos[status] then do (dyno) ->
+                # Add a bound function to stats booster.
+                fns.push (_cb) ->
+                    processes.getStats dyno.pid, (stats) ->
+                        # Build a package.
+                        pkg = { 'port': dyno.port, 'pid': dyno.pid, 'status': status }
+                        # Stats?
+                        if stats then pkg.stats = stats
+                        # Cb then.
+                        _cb null, pkg
+
+        # One big parallel run.
+        async.parallel fns, (err, dynos) ->
+            if err then throw err
+            cb dynos
 
     # Remove a dyno that has wound down.
     removeDyno: (pid) -> delete @dynos.down[pid]

@@ -11,7 +11,7 @@ winston.cli()
 
 module.exports =
     get: ->
-        winston.debug 'Get status of all apps'
+        winston.debug 'Get all dynos'
         
         req = @req
         res = @res
@@ -29,7 +29,7 @@ module.exports =
 
     '/:pid':
         get: (pid) ->
-            winston.debug 'Get status of one app'
+            winston.debug 'Get one dyno'
             
             req = @req
             res = @res
