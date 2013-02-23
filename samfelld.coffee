@@ -32,8 +32,10 @@ module.exports.start = (cb) ->
     # Director routes.
     app.router = new director.http.Router
         '/api':
-            '/deploy':
-                post: require './samfelld/deploy.coffee'
+            '/deploy': require './samfelld/deploy.coffee'
+            '/apps':   require './samfelld/apps.coffee'
+
+    console.log app.router.routes
 
     # Start the service.
     app.start cfg.deploy_port, (err) ->

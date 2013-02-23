@@ -9,7 +9,7 @@ winston.cli()
 # Link to main apps storage.
 { apps } = require '../samfelld.coffee'
 
-module.exports = ->
+exports.post = ->
     winston.debug 'Deploying app'
     
     req = @req
@@ -27,6 +27,11 @@ module.exports = ->
 
     # Messaging from the app.
     app.on 'message', onMessage
+
+    # Respond with the pid of the app being deployed.
+    res.writeHead 200, 'content-type': 'application/json'
+    res.write JSON.stringify 'pid': app.pid
+    res.end()
 
 onExit = (code) ->
     winston.warn "App #{('pid '+@pid).bold} exited"
