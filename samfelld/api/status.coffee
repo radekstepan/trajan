@@ -6,8 +6,8 @@ winston       = require 'winston'
 # Nice logging.
 winston.cli()
 
-# Link to main apps storage.
-{ apps } = require '../samfelld.coffee'
+# Link to main manifold.
+{ manifold } = require '../../samfelld.coffee'
 
 module.exports =
     get: ->
@@ -17,7 +17,7 @@ module.exports =
         res = @res
 
         res.writeHead 200, 'content-type': 'application/json'
-        res.write JSON.stringify 'apps': apps
+        res.write JSON.stringify 'dynos': manifold
         res.end()
 
     '/:pid':
@@ -27,16 +27,12 @@ module.exports =
             req = @req
             res = @res
 
-            # Find the app.
-            app = ( app for app in apps.up when app.pid is parseInt(pid) ).pop()
-            if app
+            # Find a single dyno.
+            if dyno = manifold.getDyno(pid)
                 res.writeHead 200, 'content-type': 'application/json'
-                res.write JSON.stringify 'app':
-                    'status': 'up'
-                    'port': app.port
+                res.write JSON.stringify 'dyno': dyno
                 res.end()
             else
-                res.writeHead 200, 'content-type': 'application/json'
-                res.write JSON.stringify 'app':
-                    'status': 'down'
+                res.writeHead 404, 'content-type': 'application/json'
+                res.write JSON.stringify 'message': 'Dyno not found'
                 res.end()

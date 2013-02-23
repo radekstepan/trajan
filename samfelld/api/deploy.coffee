@@ -6,8 +6,8 @@ winston       = require 'winston'
 # Nice logging.
 winston.cli()
 
-# Link to main apps storage.
-{ apps } = require '../samfelld.coffee'
+# Link to main manifold.
+{ manifold } = require '../../samfelld.coffee'
 
 exports.post = ->
     winston.debug 'Deploying app'
@@ -36,9 +36,7 @@ exports.post = ->
 onExit = (code) ->
     winston.warn "App #{('pid '+@pid).bold} exited"
     # Remove it from the going down stack.
-    for i, ch of apps.down
-        if ch.pid is @pid
-            return apps.down.splice 0, i
+    manifold.removeDyno(@pid)
 
 onMessage = (data) ->
     switch data.message
@@ -46,17 +44,7 @@ onMessage = (data) ->
             winston.info "App online on port #{(data.port+'').bold}"
             
             # Offline existing app(s).
-            while apps.up.length isnt 0
-                ch = apps.up.pop()
-                # Send message.
-                ch.ref.send 'Die'
-                # To down stack.
-                apps.down.push ch
+            manifold.offlineDynos()
 
             # Save us as a new online app.
-            obj =
-                'ref': @
-                'pid': @pid
-                'port': data.port
-
-            apps.up.push obj
+            manifold.saveDyno { 'ref': @, 'pid': @pid, 'port': data.port }

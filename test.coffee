@@ -21,7 +21,7 @@ start (cfg) ->
             # Get app status.
             request
                 'method': 'GET'
-                'uri': "http://127.0.0.1:#{cfg.deploy_port}/api/apps/#{pid}"
+                'uri': "http://127.0.0.1:#{cfg.deploy_port}/api/status/#{pid}"
                 'headers':
                     'x-auth-token': 'abc'
             , (err, res, body) ->

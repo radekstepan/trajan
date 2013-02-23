@@ -9,8 +9,9 @@ fs            = require 'fs'
 # Nice logging.
 winston.cli()
 
-# Store children here.
-module.exports.apps = 'up': [], 'down': []
+# Load manifold.
+Manifold = require './samfelld/manifold.coffee'
+module.exports.manifold = new Manifold()
 
 # Start the shebang.
 module.exports.start = (cb) ->
@@ -30,12 +31,12 @@ module.exports.start = (cb) ->
         'before': [ authReq ]
 
     # Director routes.
-    app.router = new director.http.Router
-        '/api':
-            '/deploy': require './samfelld/deploy.coffee'
-            '/apps':   require './samfelld/apps.coffee'
+    routes = '/api': r = {}
+    for path in fs.readdirSync './samfelld/api'
+        name = path[0...-7]
+        r['/' + name] = require "./samfelld/api/#{path}"
 
-    console.log app.router.routes
+    app.router = new director.http.Router routes
 
     # Start the service.
     app.start cfg.deploy_port, (err) ->
@@ -45,11 +46,9 @@ module.exports.start = (cb) ->
         onRoute = (req, res, proxy) ->
             winston.debug 'Routing request'
             # Get the first available route.
-            if target = apps.up.shift()
+            if port = manifold.getPort()
                 # Route.
-                proxy.proxyRequest req, res, { 'host': '127.0.0.1', 'port': target.port }
-                # Add back to the stack.
-                apps.up.push target
+                proxy.proxyRequest req, res, { 'host': '127.0.0.1', 'port': port }
             else
                 # No apps are online.
                 winston.error 'No apps online'
