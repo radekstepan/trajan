@@ -1,7 +1,13 @@
 #!/usr/bin/env coffee
-async = require 'async'
+async         = require 'async'
+child_process = require 'child_process'
+{ _ }         = require 'underscore'
+winston       = require 'winston'
 
 { processes } = require '../samfelld.coffee'
+
+# Nice logging.
+winston.cli()
 
 class Manifold
 
@@ -10,6 +16,43 @@ class Manifold
         'up': []
         'down': []
 
+    # Spawn an app into a dyno.
+    spawn: (name) ->
+        # Example app to launch.
+        app = child_process.fork "./apps/#{name}/start.js",
+            # 'env': _.extend { 'PORT': 7000 }, process.env
+            'silent': true # cannot pipe out to a file :(
+
+        # Save pid.
+        processes.save app.pid
+
+        winston.info "Starting app #{('pid '+app.pid).bold}"
+
+        manifold = @
+
+        # Say when app is dead.
+        app.on 'exit', (code) ->
+            winston.warn "App #{('pid '+@pid).bold} exited"
+            # Remove it from the going down stack.
+            manifold.removeDyno @pid
+            # Remove from pids.
+            processes.remove @pid
+
+        # Messaging from the app.
+        app.on 'message', (data) ->
+            switch data.message
+                when 'online'
+                    winston.info "App online on port #{(data.port+'').bold}"
+                    
+                    # Offline existing app(s).
+                    manifold.offlineDynos()
+
+                    # Save us as a new online app.
+                    manifold.saveDyno { 'ref': @, 'pid': @pid, 'port': data.port }
+
+        # Just return the pid.
+        app.pid
+    
     # Get an available dyno port.
     getPort: ->
         if dyno = @dynos.up.shift()

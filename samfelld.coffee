@@ -1,10 +1,11 @@
 #!/usr/bin/env coffee
-flatiron      = require 'flatiron'
-director      = require 'director'
-httpProxy     = require 'http-proxy'
-winston       = require 'winston'
-path          = require 'path'
-fs            = require 'fs'
+flatiron  = require 'flatiron'
+union     = require 'union'
+director  = require 'director'
+httpProxy = require 'http-proxy'
+winston   = require 'winston'
+path      = require 'path'
+fs        = require 'fs'
 
 # Nice logging.
 winston.cli()
@@ -31,8 +32,7 @@ module.exports.start = (cb) ->
             res.end()
 
     app = flatiron.app
-    app.use flatiron.plugins.http,
-        'before': [ authReq ]
+    app.use flatiron.plugins.http, 'before': [ authReq ]
 
     # Director routes.
     routes = '/api': r = {}

@@ -1,5 +1,6 @@
-flatiron = require '../node_modules/flatiron'
-director = require '../node_modules/director'
+# Will be deployed in /apps/ subdir...
+flatiron = require '../../node_modules/flatiron'
+director = require '../../node_modules/director'
 
 # Generate an id of our "unique" app.
 id = Math.random().toString(36).substr(7)
