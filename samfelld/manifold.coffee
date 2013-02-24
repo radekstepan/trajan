@@ -13,9 +13,10 @@ winston.cli()
 class Manifold
 
     # All dynos we know of.
-    dynos:
-        'up': []
-        'down': []
+    dynos: {}
+
+    # Proxy ports of online dynos to use.
+    ports: []
 
     # Spawn an app into a dyno.
     spawn: (name) ->
@@ -56,25 +57,22 @@ class Manifold
     
     # Get an available dyno port.
     getPort: ->
-        if dyno = @dynos.up.shift()
-            @stack.push dyno
-            return dyno.port
-
-    _findDyno: (pid) ->
-        # Enforce int.
-        pid = parseInt pid
-        # All statuses.
-        for status in [ 'up', 'down' ]
-            pkg = (dyno) -> { 'port': dyno.port, 'pid': dyno.pid, 'status': status }
-            if (dyno = ( pkg(dyno) for dyno in @dynos[status] when dyno.pid is pid ).pop())
-                return dyno
+        if port = @ports.shift()
+            @ports.push port
+            return port
 
     # Get back a dyno.
     getDyno: (pid, cb) ->
-        if dyno = @_findDyno pid
+        pid = parseInt pid
+        if dyno = @dynos[pid]
             # Now get the stats about the process.
             processes.getStats pid, (stats) ->
-                if stats then dyno.stats = stats
+                # Form a deep copy obj wo/ ref.
+                obj = {}
+                ( obj[key] = dyno[key] for key in [ 'port', 'pid', 'status' ] )
+                # Boost w/ stats?
+                if stats then obj.stats = stats
+                # We done...
                 cb dyno
         else
             cb null
@@ -82,35 +80,44 @@ class Manifold
     # Get all dynos back.
     getDynos: (cb) ->
         fns = []
-        for status in [ 'up', 'down' ]
-            for dyno in @dynos[status] then do (dyno) ->
-                # Add a bound function to stats booster.
-                fns.push (_cb) ->
-                    processes.getStats dyno.pid, (stats) ->
-                        # Build a package.
-                        pkg = { 'port': dyno.port, 'pid': dyno.pid, 'status': status }
-                        # Stats?
-                        if stats then pkg.stats = stats
-                        # Cb then.
-                        _cb null, pkg
+        for pid, dyno of @dynos then do (dyno) ->
+            # Add a bound function to stats booster.
+            fns.push (_cb) ->
+                processes.getStats dyno.pid, (stats) ->
+                    # Form a deep copy obj wo/ ref.
+                    obj = {}
+                    ( obj[key] = dyno[key] for key in [ 'port', 'pid', 'status' ] )
+                    # Boost w/ stats?
+                    if stats then obj.stats = stats
+                    # We done...
+                    _cb null, obj
 
         # One big parallel run.
         async.parallel fns, (err, dynos) ->
             if err then throw err
-            cb dynos
+            else cb dynos
 
     # Remove a dyno that has wound down.
-    removeDyno: (pid) -> delete @dynos.down[pid]
+    removeDyno: (pid) -> delete @dynos[pid]
     
     # Ask existing dynos to wind down.
     offlineDynos: ->
-        while dyno = @dynos.up.pop()
+        for pid, dyno of @dynos when dyno.status is 'up'
             # Send the message.
-            dyno.ref.send('Die')
-            # Push to winding down ones.
-            @dynos.down.push dyno
+            dyno.ref.send 'Die'
+            # Set the status to going down.
+            dyno.status = 'down'
+            # Remove from available ports.
+            idx = @ports.indexOf dyno.port
+            @ports.splice idx, 1
 
     # Save a dyno that has come online.
-    saveDyno: (obj) -> @dynos.up.push obj
+    saveDyno: (dyno) ->
+        # The status.
+        dyno.status = 'up'
+        # The dict.
+        @dynos[dyno.pid] = dyno
+        # The port.
+        @ports.push dyno.port
 
 module.exports = Manifold
