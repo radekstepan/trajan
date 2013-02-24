@@ -55,9 +55,7 @@ async.waterfall [ (cb) ->
                 if dyno.status isnt 'up' then up = false
 
             unless up then setTimeout check, 500
-            else
-                # Callback then.
-                cb null, cfg, length
+            else cb null, cfg, length
 
 # Make requests to all dynos.
 , (cfg, length, cb) ->

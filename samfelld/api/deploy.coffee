@@ -1,5 +1,6 @@
 #!/usr/bin/env coffee
 child_process = require 'child_process'
+{ _ }         = require 'underscore'
 async         = require 'async'
 winston       = require 'winston'
 tar           = require 'tar'
@@ -20,47 +21,62 @@ module.exports =
             req = @req
             res = @res
 
-            # Pipe to a temp directory
-            temp = cfg.temp_dir + '/' + (new Date()).getTime()
+            # Unpack.
+            async.waterfall [ (cb) ->
+                # A new temp directory.
+                temp = cfg.temp_dir + '/' + (new Date()).getTime()
 
-            # Unzip.
-            req.pipe(zlib.Gunzip())
-            # Untar.
-            .pipe(tar.Extract({ 'strip': true, 'path': path = path.resolve(__dirname, "../../#{temp}") }))
-            # Handle further...
-            .on 'end', ->
-                # Generate new ids of shell dynos in sync.
-                ids = [] ; dynos = []
-                try
-                    for i in [0...cfg.dyno_count]
-                        dynos.push dyno = manifold.newDyno name
-                        ids.push dyno.id
-                catch e
-                    res.writeHead 500, 'content-type': 'application/json'
-                    res.write JSON.stringify 'error': e.message
-                    return res.end()
+                # Unzip.
+                req.pipe(zlib.Gunzip())
+                # Untar.
+                .pipe(tar.Extract({ 'strip': true, 'path': dir = path.resolve(__dirname, "../../#{temp}") }))
+                # Handle further...
+                .on 'end', -> cb null, temp, dir
 
-                # Respond with the ids of the dynos being deployed & spawned.
-                res.writeHead 200, 'content-type': 'application/json'
-                res.write JSON.stringify 'ids': ids
-                res.end()
+            # Create shell dynos.
+            , (temp, dir, cb) ->
+                fns = ( ( (_cb) -> manifold.newDyno(name, _cb) ) for i in [0...cfg.dyno_count] )
+                async.parallel fns, (err, dynos) ->
+                    if err and err.length isnt 0
+                        res.writeHead 500, 'content-type': 'application/json'
+                        res.write JSON.stringify 'error': err
+                        res.end()
+                        # Bad.
+                        cb err
+                    else
+                        # Respond with the ids of the dynos being deployed & spawned.
+                        res.writeHead 200, 'content-type': 'application/json'
+                        res.write JSON.stringify 'ids': _.pluck(dynos, 'id')
+                        res.end()
+                        # Good.
+                        cb null, temp, dir, dynos
 
+            # Npm install.
+            , (temp, dir, dynos, cb) ->
                 winston.debug 'Installing dependencies through npm'
 
                 # Exec npm install.
-                child_process.exec "cd #{path} ; npm install -d", (err, stderr, stdout) ->
-                    # Now deploy all of them in async.
-                    fns = ( for dyno in dynos then do (dyno) -> ( (cb) -> dyno.deploy temp, cb ) )
-                    
-                    async.parallel fns, (err, done) ->
-                        if err and err.length isnt 0 then return winston.error err
-                        winston.debug 'Finished deploying dynos'
+                child_process.exec "cd #{dir} ; npm install -d", (err, stderr, stdout) ->
+                    if err then cb err
+                    else cb null, temp, dynos
 
-                        # Now spawn all of them.
-                        fns = ( for dyno in dynos then do (dyno) -> ( (cb) -> dyno.spawn cb ) )
-                        async.parallel fns, (err, done) ->
-                            if err and err.length isnt 0 then return winston.error err
-                            winston.debug 'Finished spawning dynos'
+            # Dyno deploy.
+            , (temp, dynos, cb) ->
+                fns = ( for dyno in dynos then do (dyno) -> ( (_cb) -> dyno.deploy temp, _cb ) )
+                async.parallel fns, (err, done) ->
+                    if err and err.length isnt 0 then cb err
+                    else cb null, dynos
 
-                            # Now we need to offline past dynos.
-                            manifold.offlineDynos()
+            # Dyno spawn.
+            , (dynos, cb) ->
+                fns = ( for dyno in dynos then do (dyno) -> ( (_cb) -> dyno.spawn _cb ) )
+                async.parallel fns, (err, done) ->
+                    if err and err.length isnt 0 then cb err
+                    else
+                        winston.debug 'Finished spawning dynos'
+                        # Now we need to offline past dynos.
+                        manifold.offlineDynos()
+                        cb null
+
+            ], (err, results) ->
+                if err then winston.error err

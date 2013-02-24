@@ -85,17 +85,18 @@ class Manifold
             winston.info "Dyno #{(dyno.id+'').bold} accepting connections on port #{(dyno.port+'').bold}"
 
     # Generate a new shell dyno instance
-    newDyno: (name) ->
+    newDyno: (name, cb) ->
         # Do we already have a name?
-        if @name and name isnt @name then throw 'App names do not match'
-        # Save the name.
-        @name = name
+        if @name and name isnt @name then cb 'App names do not match'
+        else
+            # Save the name.
+            @name = name
 
-        id = @id++
-        # Instantiate the obj and save on us.
-        @dynos[id] = dyno = new Dyno id, name, @
+            id = @id++
+            # Instantiate the obj and save on us.
+            @dynos[id] = dyno = new Dyno id, name, @
 
-        # Return the dyno.
-        dyno
+            # Return the dyno.
+            cb null, dyno
 
 module.exports = Manifold
