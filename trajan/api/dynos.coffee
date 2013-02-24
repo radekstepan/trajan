@@ -8,7 +8,7 @@ path          = require 'path'
 winston.cli()
 
 # Link to main manifold.
-{ manifold } = require path.resolve(__dirname, '../../samfelld.coffee')
+{ manifold } = require path.resolve(__dirname, '../../trajan.coffee')
 
 module.exports =
     get: ->

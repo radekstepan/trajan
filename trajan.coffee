@@ -13,11 +13,11 @@ winston.cli()
 module.exports.cfg = cfg = JSON.parse fs.readFileSync path.resolve(__dirname, './config.json'), 'utf8'
 
 # Load processes.
-Processes = require './samfelld/processes.coffee'
+Processes = require './trajan/processes.coffee'
 module.exports.processes = new Processes()
 
 # Load manifold.
-Manifold = require './samfelld/manifold.coffee'
+Manifold = require './trajan/manifold.coffee'
 module.exports.manifold = manifold = new Manifold()
 
 # Start the shebang.
@@ -35,9 +35,9 @@ module.exports.start = (cb) ->
 
     # Director routes.
     routes = '/api': r = {}
-    for file in fs.readdirSync path.resolve(__dirname, './samfelld/api')
+    for file in fs.readdirSync path.resolve(__dirname, './trajan/api')
         name = file[0...-7]
-        r['/' + name] = require path.resolve(__dirname, "./samfelld/api/#{file}")
+        r['/' + name] = require path.resolve(__dirname, "./trajan/api/#{file}")
 
     app.router = new director.http.Router routes
 

@@ -3,7 +3,7 @@ async   = require 'async'
 winston = require 'winston'
 path    = require 'path'
 
-{ processes } = require path.resolve __dirname, '../samfelld.coffee'
+{ processes } = require path.resolve __dirname, '../trajan.coffee'
 Dyno          = require path.resolve __dirname, './dyno.coffee'
 
 # Nice logging.

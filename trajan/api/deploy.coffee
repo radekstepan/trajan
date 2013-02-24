@@ -11,7 +11,7 @@ path          = require 'path'
 winston.cli()
 
 # Link to main manifold & config.
-{ manifold, cfg } = require path.resolve(__dirname, '../../samfelld.coffee')
+{ manifold, cfg } = require path.resolve(__dirname, '../../trajan.coffee')
 
 module.exports =
     '/:name':

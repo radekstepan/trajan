@@ -1,4 +1,4 @@
-# samfelld
+# trajan
 
 Zero downtime continuous deployment service and client for Node.js
 

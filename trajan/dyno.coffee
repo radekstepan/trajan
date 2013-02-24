@@ -6,7 +6,7 @@ winston       = require 'winston'
 path          = require 'path'
 wrench        = require 'wrench'
 
-{ processes, cfg } = require path.resolve(__dirname, '../samfelld.coffee')
+{ processes, cfg } = require path.resolve(__dirname, '../trajan.coffee')
 
 # Nice logging.
 winston.cli()

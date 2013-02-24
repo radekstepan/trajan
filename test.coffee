@@ -5,7 +5,7 @@ tar      = require 'tar'
 zlib     = require 'zlib'
 fstream  = require 'fstream'
 
-{ start } = require './samfelld.coffee'
+{ start } = require './trajan.coffee'
 
 # Start the service.
 async.waterfall [ (cb) ->
