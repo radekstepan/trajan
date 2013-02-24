@@ -32,9 +32,14 @@ module.exports =
 
                 # Generate new ids of shell dynos in sync.
                 ids = [] ; dynos = []
-                for i in [0...cfg.dyno_count]
-                    dynos.push dyno = manifold.newDyno name
-                    ids.push dyno.id
+                try
+                    for i in [0...cfg.dyno_count]
+                        dynos.push dyno = manifold.newDyno name
+                        ids.push dyno.id
+                catch e
+                    res.writeHead 500, 'content-type': 'application/json'
+                    res.write JSON.stringify 'error': e.message
+                    return res.end()
 
                 # Respond with the ids of the dynos being deployed & spawned.
                 res.writeHead 200, 'content-type': 'application/json'

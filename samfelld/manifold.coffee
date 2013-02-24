@@ -86,6 +86,11 @@ class Manifold
 
     # Generate a new shell dyno instance
     newDyno: (name) ->
+        # Do we already have a name?
+        if @name and name isnt @name then throw 'App names do not match'
+        # Save the name.
+        @name = name
+
         id = @id++
         # Instantiate the obj and save on us.
         @dynos[id] = dyno = new Dyno id, name, @
