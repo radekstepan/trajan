@@ -78,4 +78,4 @@ async.waterfall [ (cb) ->
 ], (err, results) ->
     if err then throw err
 
-    console.log results
+    console.log JSON.stringify results, null, 2

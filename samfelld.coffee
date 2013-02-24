@@ -1,6 +1,5 @@
 #!/usr/bin/env coffee
 flatiron  = require 'flatiron'
-union     = require 'union'
 director  = require 'director'
 httpProxy = require 'http-proxy'
 winston   = require 'winston'
@@ -11,7 +10,7 @@ fs        = require 'fs'
 winston.cli()
 
 # Read config.
-module.exports.cfg = cfg = JSON.parse fs.readFileSync(path.resolve(__dirname, './config.json')).toString('utf-8')
+module.exports.cfg = cfg = JSON.parse fs.readFileSync path.resolve(__dirname, './config.json'), 'utf8'
 
 # Load processes.
 Processes = require './samfelld/processes.coffee'
