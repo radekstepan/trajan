@@ -18,6 +18,9 @@ module.exports.log = log = do ->
 # Read config.
 module.exports.cfg = cfg = JSON.parse fs.readFileSync path.resolve(__dirname, './config.json'), 'utf8'
 
+# Fix the auth token in test mode.
+if process.env.NODE_ENV isnt 'test' then cfg.auth_token is 'abc'
+
 # Load processes.
 Processes = require './trajan/processes.coffee'
 module.exports.processes = new Processes()

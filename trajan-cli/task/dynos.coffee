@@ -4,11 +4,17 @@ async   = require 'async'
 
 { exit } = require '../cli.coffee'
 
-module.exports = ([ address ]) ->
+module.exports = ([ address, keys ]) ->
     unless address then exit 'Insufficient parameters'
 
     # Have we provided port or go default?
     if (address.split(':')).length isnt 2 then address = address + ':9002'
+
+    # Inject default key in testing mode.
+    if process.env.NODE_ENV is 'test' then keys[address] = 'abc'
+
+    # Do we have a key for us?
+    unless key = keys[address] then exit 'API token key not provided'
 
     # Get the app name from config.json.
     async.waterfall [ (cb) ->
@@ -16,7 +22,7 @@ module.exports = ([ address ]) ->
         request.get
             'url': "http://#{address}/api/dynos"
             'headers':
-                'x-auth-token': 'abc'
+                'x-auth-token': key
         , (err, res, body) ->
             if err then return cb err # request
             if res.statusCode isnt 200 then return cb body # response
