@@ -1,6 +1,6 @@
 {
     "name": "trajan",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "dependencies": {
         "coffee-script": "1.4.0",
         "request": "2.14.0",
@@ -18,6 +18,10 @@
         "wrench": "1.4.4",
         "mocha": "1.8.1",
         "chai": "1.5.0"
+    },
+    "bin": {
+        "trajan": "./bin/trajan",
+        "trajan-cli": "./bin/trajan-cli"
     },
     "scripts": {
         "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha --compilers coffee:coffee-script --ui bdd --reporter spec --timeout 20000"

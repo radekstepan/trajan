@@ -3,7 +3,7 @@ async   = require 'async'
 path    = require 'path'
 
 { log, processes } = require path.resolve __dirname, '../trajan.coffee'
-Dyno          = require path.resolve __dirname, './dyno.coffee'
+Dyno               = require path.resolve __dirname, './dyno.coffee'
 
 class Manifold
 

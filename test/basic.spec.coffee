@@ -1,15 +1,11 @@
 #!/usr/bin/env coffee
-assert    = require('chai').assert
+{ assert }    = require 'chai'
+async         = require 'async'
+request       = require 'request'
+child_process = require 'child_process'
+{ _ }         = require 'underscore'
 
-request   = require 'request'
-async     = require 'async'
-tar       = require 'tar'
-zlib      = require 'zlib'
-fstream   = require 'fstream'
-path      = require 'path'
-{ _ }     = require 'underscore'
-
-{ start } = require '../trajan.coffee'
+{ start }     = require '../trajan.coffee'
 
 CFG = null
 
@@ -26,55 +22,32 @@ describe 'Basic test', ->
         it 'spawns two dynos', (done) ->
             # Package up our app and stream it to the service.
             async.waterfall [ (cb) ->
-                # Skip files in `node_modules` directory.
-                filter = (props) -> props.path.indexOf('/node_modules/') is -1
-                # Make a stream.
-                fstream.Reader({ 'path': (path.resolve __dirname, './example-app'), 'type': 'Directory', 'filter': filter })
-                # Tar.
-                .pipe(tar.Pack())
-                # GZip.
-                .pipe(zlib.Gzip())
-                # Pipe to...
-                .pipe(
-                    # ... the service.
-                    request.post
-                        'url': "http://127.0.0.1:#{CFG.deploy_port}/api/deploy/example-app"
-                        'headers':
-                            'x-auth-token': CFG.auth_token
-                    , (err, res, body) ->
-                        if err then return cb err # request
-                        if res.statusCode isnt 200 then return cb body # response
-
-                        # body = JSON.stringify JSON.parse(body), null, 2
-                        # console.log "#{res.statusCode}: #{body}"
-                        cb null, JSON.parse(body).ids.length
-                )
+                child_process.exec './bin/trajan-cli deploy 127.0.0.1 test/example-app/', (err, stdout, stderr) ->
+                    if err then cb err
+                    if stderr then cb stderr
+                    cb null
 
             # Keep checking for up status from both dynos.
-            , (length, cb) ->
+            , (cb) ->
                 do check = ->
-                    request.get
-                        'url': "http://127.0.0.1:#{CFG.deploy_port}/api/dynos"
-                        'headers':
-                            'x-auth-token': CFG.auth_token
-                    , (err, res, body) ->
-                        if err then return cb err # request
-                        if res.statusCode isnt 200 then return cb body # response
+                    child_process.exec './bin/trajan-cli dynos 127.0.0.1', (err, stdout, stderr) ->
+                        if err then cb err
+                        if stderr then cb stderr
 
                         # Check all dynos now.
                         up = true
-                        for dyno in JSON.parse(body).dynos
+                        for dyno in JSON.parse(stdout).dynos
                             if dyno.status isnt 'up' then up = false
 
                         unless up then setTimeout check, 500
-                        else cb null, length
+                        else cb null
 
             # Make requests to all dynos.
-            , (length, cb) ->
-                fns = ( for i in [0...length]
+            , (cb) ->
+                fns = ( for i in [0...2]
                     (_cb) ->
                         request.get
-                            'url': "http://127.0.0.1:#{CFG.proxy_port}/api"
+                            'url': "http://127.0.0.1:8000/api"
                         , (err, res, body) ->
                             if err then return _cb err # request
                             if res.statusCode isnt 200 then return _cb body # response
