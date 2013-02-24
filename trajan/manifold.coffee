@@ -1,13 +1,9 @@
 #!/usr/bin/env coffee
 async   = require 'async'
-winston = require 'winston'
 path    = require 'path'
 
-{ processes } = require path.resolve __dirname, '../trajan.coffee'
+{ log, processes } = require path.resolve __dirname, '../trajan.coffee'
 Dyno          = require path.resolve __dirname, './dyno.coffee'
-
-# Nice logging.
-winston.cli()
 
 class Manifold
 
@@ -82,7 +78,7 @@ class Manifold
             # Push to the stack of ports.
             @ports.push dyno.port
             # Say it.
-            winston.info "Dyno #{(dyno.id+'').bold} accepting connections on port #{(dyno.port+'').bold}"
+            log.info "Dyno #{(dyno.id+'').bold} accepting connections on port #{(dyno.port+'').bold}"
 
     # Generate a new shell dyno instance
     newDyno: (name, cb) ->

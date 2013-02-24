@@ -2,14 +2,10 @@
 async         = require 'async'
 child_process = require 'child_process'
 { _ }         = require 'underscore'
-winston       = require 'winston'
 path          = require 'path'
 wrench        = require 'wrench'
 
-{ processes, cfg } = require path.resolve(__dirname, '../trajan.coffee')
-
-# Nice logging.
-winston.cli()
+{ log, cfg, processes } = require path.resolve(__dirname, '../trajan.coffee')
 
 class Dyno
 
@@ -21,7 +17,7 @@ class Dyno
 
     # Deploy from source dir to our target dir.
     deploy: (source, cb) ->
-        winston.debug "Deploying dyno #{(@id+'').bold}"
+        log.debug "Deploying dyno #{(@id+'').bold}"
 
         # Form paths.
         source = path.resolve __dirname, "../#{source}"
@@ -47,11 +43,11 @@ class Dyno
         # Save pid.
         processes.save @pid = @process.pid
 
-        winston.debug "Spawning dyno #{(@id+'').bold}"
+        log.debug "Spawning dyno #{(@id+'').bold}"
 
         # Say when process is dead.
         @process.on 'exit', (code) =>
-            winston.warn "Dyno #{(@id+'').bold} exited"
+            log.warn "Dyno #{(@id+'').bold} exited"
             # Remove it from the going down stack.
             @manifold.removeDyno @id
             # Remove from pids.
@@ -63,7 +59,7 @@ class Dyno
                 when 'online'
                     # Save the port.
                     @port = data.port
-                    winston.debug "Dyno #{(@id+'').bold} ready on port #{(@port+'').bold}"
+                    log.debug "Dyno #{(@id+'').bold} ready on port #{(@port+'').bold}"
                     # Change our status to ready for using.
                     @status = 'ready'
                     # Call back.

@@ -6,7 +6,7 @@ Zero downtime continuous deployment service and client for Node.js
 
 You are running a small VPS that will power your SaaS app. You want to deploy frequently and without a downtime for your clients.
 
-1. Samfelld cli pipes a `tar.gz` package of your app to the service.
+1. `trajan` client pipes a `tar.gz` package of your app to the service.
 1. The service deploys this app as a drone in a manifold (hello Heroku).
 1. Your app sends a message to the spawning service saying it is online.
 1. The service sends a **message** to its current drones to wind down.
@@ -21,3 +21,4 @@ And that is all folks. Some extras:
 ## Some issues
 
 1. We are using `child_process.fork` so we get a bi-directional comms between the service and the child. Unfortunately, this means that we cannot get a nice pipe with logs coming from the child. All log-worthy traffic needs to be sent to the parent service explicitly.
+1. Test coverage is low.

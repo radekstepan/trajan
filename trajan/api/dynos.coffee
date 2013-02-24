@@ -1,18 +1,14 @@
 #!/usr/bin/env coffee
 child_process = require 'child_process'
 { _ }         = require 'underscore'
-winston       = require 'winston'
 path          = require 'path'
 
-# Nice logging.
-winston.cli()
-
 # Link to main manifold.
-{ manifold } = require path.resolve(__dirname, '../../trajan.coffee')
+{ log, manifold } = require path.resolve(__dirname, '../../trajan.coffee')
 
 module.exports =
     get: ->
-        winston.debug 'Get all dynos'
+        log.debug 'Get all dynos'
         
         req = @req
         res = @res
@@ -30,7 +26,7 @@ module.exports =
 
     '/:id':
         get: (id) ->
-            winston.debug 'Get one dyno'
+            log.debug 'Get one dyno'
             
             req = @req
             res = @res

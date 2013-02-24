@@ -2,10 +2,9 @@
 fs            = require 'fs'
 child_process = require 'child_process'
 path          = require 'path'
-winston       = require 'winston'
 
-# Nice logging.
-winston.cli()
+# Logging.
+{ log } = require path.resolve __dirname, '../trajan.coffee'
 
 class Processes
 
@@ -19,7 +18,7 @@ class Processes
             file = fs.readFileSync @file, 'utf8'
             # Kill any previously running ones.
             for pid in JSON.parse(file) then do (pid) ->
-                winston.warn "Killing process #{(pid+'').bold}"
+                log.warn "Killing process #{(pid+'').bold}"
                 # TODO: Maybe `ps -p <pid>` to find out if a node process?
                 child_process.exec "kill #{pid}"
 

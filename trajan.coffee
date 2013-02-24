@@ -6,8 +6,14 @@ winston   = require 'winston'
 path      = require 'path'
 fs        = require 'fs'
 
-# Nice logging.
-winston.cli()
+# Create a logger.
+module.exports.log = log = do ->
+    if process.env.NODE_ENV isnt 'test'
+        winston.cli()
+        winston
+    else
+        winston.loggers.add 'dummy', 'console': 'silent': true
+        winston.loggers.get 'dummy'
 
 # Read config.
 module.exports.cfg = cfg = JSON.parse fs.readFileSync path.resolve(__dirname, './config.json'), 'utf8'
@@ -44,22 +50,22 @@ module.exports.start = (cb) ->
     # Start the service.
     app.start cfg.deploy_port, (err) ->
         if err then throw err
-        winston.info "Deploy service listening on port #{(cfg.deploy_port+'').bold}"
+        log.info "Deploy service listening on port #{(cfg.deploy_port+'').bold}"
 
         onRoute = (req, res, proxy) ->
             # Get the first available route.
             if port = manifold.getPort()
-                winston.info "Routing request to port #{(port+'').bold}"
+                log.info "Routing request to port #{(port+'').bold}"
                 # Route.
                 proxy.proxyRequest req, res, { 'host': '127.0.0.1', 'port': port }
             else
                 # No apps are online.
-                winston.error 'No apps online'
+                log.error 'No apps online'
                 res.writeHead 503
                 res.end 'No apps online'
 
         # Start proxy.
         httpProxy.createServer(onRoute).listen cfg.proxy_port
-        winston.info "Proxy listening on port #{(cfg.proxy_port+'').bold}"
+        log.info "Proxy listening on port #{(cfg.proxy_port+'').bold}"
 
         if cb and typeof(cb) is 'function' then cb cfg

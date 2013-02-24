@@ -2,21 +2,17 @@
 child_process = require 'child_process'
 { _ }         = require 'underscore'
 async         = require 'async'
-winston       = require 'winston'
 tar           = require 'tar'
 zlib          = require 'zlib'
 path          = require 'path'
 
-# Nice logging.
-winston.cli()
-
 # Link to main manifold & config.
-{ manifold, cfg } = require path.resolve(__dirname, '../../trajan.coffee')
+{ log, cfg, manifold } = require path.resolve(__dirname, '../../trajan.coffee')
 
 module.exports =
     '/:name':
         post: (name) ->
-            winston.info 'Deploy task running'
+            log.info 'Deploy task running'
             
             req = @req
             res = @res
@@ -53,7 +49,7 @@ module.exports =
 
             # Npm install.
             , (temp, dir, dynos, cb) ->
-                winston.debug 'Installing dependencies through npm'
+                log.debug 'Installing dependencies through npm'
 
                 # Exec npm install.
                 child_process.exec "cd #{dir} ; npm install -d", (err, stderr, stdout) ->
@@ -73,10 +69,10 @@ module.exports =
                 async.parallel fns, (err, done) ->
                     if err and err.length isnt 0 then cb err
                     else
-                        winston.debug 'Finished spawning dynos'
+                        log.debug 'Finished spawning dynos'
                         # Now we need to offline past dynos.
                         manifold.offlineDynos()
                         cb null
 
             ], (err, results) ->
-                if err then winston.error err
+                if err then log.error err
