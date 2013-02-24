@@ -13,7 +13,7 @@ class Dyno
     status: 'shell'
 
     # Id by manifold, app name, link to manifold.
-    constructor: (@id, @name, @manifold) ->
+    constructor: (@id, @name, @env, @manifold) ->
 
     # Deploy from source dir to our target dir.
     deploy: (source, cb) ->
@@ -37,8 +37,10 @@ class Dyno
 
         # App dir.
         @process = child_process.fork "#{@dir}/start.js",
-            # 'env': _.extend { 'PORT': 7000 }, process.env
-            'silent': true # cannot pipe out to a file :(
+            # Boost with env vars from live config file.
+            'env': _.extend @env, process.env
+            # Cannot pipe out to a file so make it silent.
+            'silent': true
 
         # Save pid.
         processes.save @pid = @process.pid

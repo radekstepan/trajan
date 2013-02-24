@@ -5,6 +5,7 @@ async         = require 'async'
 tar           = require 'tar'
 zlib          = require 'zlib'
 path          = require 'path'
+fs            = require 'fs'
 
 # Link to main manifold & config.
 { log, cfg, manifold } = require path.resolve(__dirname, '../../trajan.coffee')
@@ -29,9 +30,22 @@ module.exports =
                 # Handle further...
                 .on 'end', -> cb null, temp, dir
 
-            # Create shell dynos.
+            # Get env vars for this app.
             , (temp, dir, cb) ->
-                fns = ( ( (_cb) -> manifold.newDyno(name, _cb) ) for i in [0...cfg.dyno_count] )
+                # Read the live config file.
+                fs.readFile path.resolve(__dirname, '../../config.json'), 'utf8', (err, data) ->
+                    if err then cb err
+                    else
+                        # Any pertinent config for us?
+                        c = JSON.parse(data)
+                        c.env ?= {}
+                        env = c.env[name] or {}
+
+                        cb null, temp, dir, env
+
+            # Create shell dynos.
+            , (temp, dir, env, cb) ->
+                fns = ( ( (_cb) -> manifold.newDyno(name, env, _cb) ) for i in [0...cfg.dyno_count] )
                 async.parallel fns, (err, dynos) ->
                     if err and err.length isnt 0
                         res.writeHead 500, 'content-type': 'application/json'

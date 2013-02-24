@@ -12,15 +12,15 @@ class Processes
     file: path.resolve __dirname, '../processes.json'
 
     constructor: ->
-        # Create if it does not exist.
-        if fs.existsSync @file
-            # Get previous list.
-            file = fs.readFileSync @file, 'utf8'
-            # Kill any previously running ones.
-            for pid in JSON.parse(file) then do (pid) ->
-                log.warn "Killing process #{(pid+'').bold}"
-                # TODO: Maybe `ps -p <pid>` to find out if a node process?
-                child_process.exec "kill #{pid}"
+        # # Create if it does not exist.
+        # if fs.existsSync @file
+        #     # Get previous list.
+        #     file = fs.readFileSync @file, 'utf8'
+        #     # Kill any previously running ones.
+        #     for pid in JSON.parse(file) then do (pid) ->
+        #         log.warn "Killing process #{(pid+'').bold}"
+        #         # TODO: Maybe `ps -p <pid>` to find out if a node process?
+        #         child_process.exec "kill #{pid}"
 
         # Start anew.
         @pids = []
@@ -30,8 +30,8 @@ class Processes
         # On us.
         @pids.push pid
 
-        # Into a file.
-        fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf-8'
+        # # Into a file.
+        # fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf-8'
 
     # Remove a pid.
     remove: (pid) ->
@@ -40,8 +40,8 @@ class Processes
                 # Remove on us
                 @pids.splice i, 0
 
-        # Into a file.
-        fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf-8'
+        # # Into a file.
+        # fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf-8'
 
     # Get stats about a process.
     getStats: (pid, cb) ->

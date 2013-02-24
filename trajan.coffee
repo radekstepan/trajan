@@ -16,10 +16,13 @@ module.exports.log = log = do ->
         winston.loggers.get 'dummy'
 
 # Read config.
-module.exports.cfg = cfg = JSON.parse fs.readFileSync path.resolve(__dirname, './config.json'), 'utf8'
-
-# Fix the auth token in test mode.
-if process.env.NODE_ENV isnt 'test' then cfg.auth_token is 'abc'
+module.exports.cfg = cfg = do ->
+    obj = JSON.parse fs.readFileSync path.resolve(__dirname, './config.json'), 'utf8'
+    # Fix the auth token and dyno cound in test mode.
+    if process.env.NODE_ENV is 'test'
+        obj.auth_token = 'abc'
+        obj.dyno_count = 2
+    obj
 
 # Load processes.
 Processes = require './trajan/processes.coffee'

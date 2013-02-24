@@ -34,9 +34,14 @@ describe 'Basic test', ->
                         if err then cb err
                         if stderr then cb stderr
 
+                        dynos = JSON.parse(stdout).dynos
+
+                        # Do we still have 2 dynos?
+                        assert.lengthOf dynos, 2
+
                         # Check all dynos now.
                         up = true
-                        for dyno in JSON.parse(stdout).dynos
+                        for dyno in dynos
                             if dyno.status isnt 'up' then up = false
 
                         unless up then setTimeout check, 500

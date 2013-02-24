@@ -81,7 +81,7 @@ class Manifold
             log.info "Dyno #{(dyno.id+'').bold} accepting connections on port #{(dyno.port+'').bold}"
 
     # Generate a new shell dyno instance
-    newDyno: (name, cb) ->
+    newDyno: (name, env, cb) ->
         # Do we already have a name?
         if @name and name isnt @name then cb 'App names do not match'
         else
@@ -90,7 +90,7 @@ class Manifold
 
             id = @id++
             # Instantiate the obj and save on us.
-            @dynos[id] = dyno = new Dyno id, name, @
+            @dynos[id] = dyno = new Dyno id, name, env, @
 
             # Return the dyno.
             cb null, dyno

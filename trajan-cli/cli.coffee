@@ -9,7 +9,7 @@ exports.exit = exit = (message) -> console.log(message) ; process.exit(1)
 [ task, args... ] = process.argv[2...]
 
 # Check task.
-if task not in [ 'deploy', 'dynos', 'auth' ] then exit "Unknown task #{task}"
+if task not in [ 'deploy', 'dynos', 'auth', 'env' ] then exit "Unknown task #{task}"
 
 # Keys file.
 file = process.env.HOME + '/.trajan'
