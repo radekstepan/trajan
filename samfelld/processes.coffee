@@ -1,6 +1,7 @@
 #!/usr/bin/env coffee
 fs            = require 'fs'
 child_process = require 'child_process'
+path          = require 'path'
 
 class Processes
 

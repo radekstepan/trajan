@@ -2,12 +2,13 @@
 child_process = require 'child_process'
 { _ }         = require 'underscore'
 winston       = require 'winston'
+path          = require 'path'
 
 # Nice logging.
 winston.cli()
 
 # Link to main manifold.
-{ manifold } = require '../../samfelld.coffee'
+{ manifold } = require path.resolve(__dirname, '../../samfelld.coffee')
 
 module.exports =
     get: ->

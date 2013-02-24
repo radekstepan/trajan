@@ -2,12 +2,13 @@
 winston = require 'winston'
 tar     = require 'tar'
 zlib    = require 'zlib'
+path    = require 'path'
 
 # Nice logging.
 winston.cli()
 
 # Link to main manifold & processes.
-{ manifold } = require '../../samfelld.coffee'
+{ manifold } = require path.resolve(__dirname, '../../samfelld.coffee')
 
 module.exports =
     '/:name':
@@ -20,7 +21,7 @@ module.exports =
             # Unzip.
             req.pipe(zlib.Gunzip())
             # Untar.
-            .pipe(tar.Extract({ 'path': './apps/' }))
+            .pipe(tar.Extract({ 'path': path.resolve(__dirname, '../../apps/') }))
             # Handle further...
             .on 'end', ->
                 winston.debug 'Spawning app'

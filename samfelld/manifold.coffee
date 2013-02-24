@@ -3,8 +3,9 @@ async         = require 'async'
 child_process = require 'child_process'
 { _ }         = require 'underscore'
 winston       = require 'winston'
+path          = require 'path'
 
-{ processes } = require '../samfelld.coffee'
+{ processes } = require path.resolve(__dirname, '../samfelld.coffee')
 
 # Nice logging.
 winston.cli()
@@ -19,7 +20,7 @@ class Manifold
     # Spawn an app into a dyno.
     spawn: (name) ->
         # Example app to launch.
-        app = child_process.fork "./apps/#{name}/start.js",
+        app = child_process.fork path.resolve(__dirname, "../apps/#{name}/start.js"),
             # 'env': _.extend { 'PORT': 7000 }, process.env
             'silent': true # cannot pipe out to a file :(
 

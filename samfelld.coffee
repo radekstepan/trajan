@@ -18,11 +18,11 @@ module.exports.processes = new Processes()
 Manifold = require './samfelld/manifold.coffee'
 module.exports.manifold = new Manifold()
 
+# Read config.
+module.exports.cfg = cfg = JSON.parse fs.readFileSync(path.resolve(__dirname, './config.json')).toString('utf-8')
+
 # Start the shebang.
 module.exports.start = (cb) ->
-    # Read config.
-    cfg = JSON.parse fs.readFileSync('./config.json').toString('utf-8')
-
     authReq = (req, res, next) ->
         # Does API token match?
         if req.headers['x-auth-token'] is cfg.auth_token then next()
@@ -36,9 +36,9 @@ module.exports.start = (cb) ->
 
     # Director routes.
     routes = '/api': r = {}
-    for path in fs.readdirSync './samfelld/api'
-        name = path[0...-7]
-        r['/' + name] = require "./samfelld/api/#{path}"
+    for file in fs.readdirSync path.resolve(__dirname, './samfelld/api')
+        name = file[0...-7]
+        r['/' + name] = require path.resolve(__dirname, "./samfelld/api/#{file}")
 
     app.router = new director.http.Router routes
 
