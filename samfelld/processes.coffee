@@ -4,8 +4,6 @@ child_process = require 'child_process'
 path          = require 'path'
 winston       = require 'winston'
 
-{ cfg } = require path.resolve __dirname, '../samfelld.coffee'
-
 # Nice logging.
 winston.cli()
 

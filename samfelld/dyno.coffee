@@ -4,7 +4,7 @@ child_process = require 'child_process'
 { _ }         = require 'underscore'
 winston       = require 'winston'
 path          = require 'path'
-ncp           = require('ncp').ncp
+wrench        = require 'wrench'
 
 { processes, cfg } = require path.resolve(__dirname, '../samfelld.coffee')
 
@@ -26,10 +26,13 @@ class Dyno
         # Form paths.
         source = path.resolve __dirname, "../#{source}"
         destination = @dir = path.resolve __dirname, "../#{cfg.apps_dir}/#{@name}-#{@id}"
-        # Do the copy.
-        ncp source, destination, (err) =>
-            if err then @status = 'error'
-            cb err
+        
+        # Remove any previous directory.
+        wrench.rmdirRecursive destination, (err) ->
+            # Do the copy.
+            wrench.copyDirRecursive source, destination, (err) =>
+                if err then @status = 'error'
+                cb err
 
     # Spawn this instance after it has been unpacked.
     spawn: (cb) ->
