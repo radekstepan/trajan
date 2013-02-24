@@ -28,15 +28,15 @@ module.exports =
                 res.write JSON.stringify 'message': 'No dynos found'
                 res.end()
 
-    '/:pid':
-        get: (pid) ->
+    '/:id':
+        get: (id) ->
             winston.debug 'Get one dyno'
             
             req = @req
             res = @res
 
             # Find a single dyno.
-            manifold.getDyno pid, (dyno) ->
+            manifold.getDyno id, (dyno) ->
                 if dyno
                     res.writeHead 200, 'content-type': 'application/json'
                     res.write JSON.stringify 'dyno': dyno

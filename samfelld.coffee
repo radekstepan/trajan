@@ -10,16 +10,16 @@ fs        = require 'fs'
 # Nice logging.
 winston.cli()
 
+# Read config.
+module.exports.cfg = cfg = JSON.parse fs.readFileSync(path.resolve(__dirname, './config.json')).toString('utf-8')
+
 # Load processes.
 Processes = require './samfelld/processes.coffee'
 module.exports.processes = new Processes()
 
 # Load manifold.
 Manifold = require './samfelld/manifold.coffee'
-module.exports.manifold = new Manifold()
-
-# Read config.
-module.exports.cfg = cfg = JSON.parse fs.readFileSync(path.resolve(__dirname, './config.json')).toString('utf-8')
+module.exports.manifold = manifold = new Manifold()
 
 # Start the shebang.
 module.exports.start = (cb) ->
@@ -48,9 +48,9 @@ module.exports.start = (cb) ->
         winston.info "Deploy service listening on port #{(cfg.deploy_port+'').bold}"
 
         onRoute = (req, res, proxy) ->
-            winston.debug 'Routing request'
             # Get the first available route.
             if port = manifold.getPort()
+                winston.info "Routing request to port #{(port+'').bold}"
                 # Route.
                 proxy.proxyRequest req, res, { 'host': '127.0.0.1', 'port': port }
             else

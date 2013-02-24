@@ -1,5 +1,8 @@
 {
     "proxy_port": 8000,
     "deploy_port": 9002,
-    "auth_token": "abc"
+    "auth_token": "abc",
+    "apps_dir": "apps",
+    "temp_dir": "apps/temp",
+    "dyno_count": 2
 }

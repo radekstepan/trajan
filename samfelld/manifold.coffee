@@ -1,59 +1,24 @@
 #!/usr/bin/env coffee
-async         = require 'async'
-child_process = require 'child_process'
-{ _ }         = require 'underscore'
-winston       = require 'winston'
-path          = require 'path'
+async   = require 'async'
+winston = require 'winston'
+path    = require 'path'
 
-{ processes } = require path.resolve(__dirname, '../samfelld.coffee')
+{ processes } = require path.resolve __dirname, '../samfelld.coffee'
+Dyno          = require path.resolve __dirname, './dyno.coffee'
 
 # Nice logging.
 winston.cli()
 
 class Manifold
 
+    # An increasing id count.
+    id: 0
+
     # All dynos we know of.
     dynos: {}
 
     # Proxy ports of online dynos to use.
     ports: []
-
-    # Spawn an app into a dyno.
-    spawn: (name) ->
-        # Example app to launch.
-        app = child_process.fork path.resolve(__dirname, "../apps/#{name}/start.js"),
-            # 'env': _.extend { 'PORT': 7000 }, process.env
-            'silent': true # cannot pipe out to a file :(
-
-        # Save pid.
-        processes.save app.pid
-
-        winston.info "Starting app #{('pid '+app.pid).bold}"
-
-        manifold = @
-
-        # Say when app is dead.
-        app.on 'exit', (code) ->
-            winston.warn "App #{('pid '+@pid).bold} exited"
-            # Remove it from the going down stack.
-            manifold.removeDyno @pid
-            # Remove from pids.
-            processes.remove @pid
-
-        # Messaging from the app.
-        app.on 'message', (data) ->
-            switch data.message
-                when 'online'
-                    winston.info "App online on port #{(data.port+'').bold}"
-                    
-                    # Offline existing app(s).
-                    manifold.offlineDynos()
-
-                    # Save us as a new online app.
-                    manifold.saveDyno { 'ref': @, 'pid': @pid, 'port': data.port }
-
-        # Just return the pid.
-        app.pid
     
     # Get an available dyno port.
     getPort: ->
@@ -62,11 +27,11 @@ class Manifold
             return port
 
     # Get back a dyno.
-    getDyno: (pid, cb) ->
-        pid = parseInt pid
-        if dyno = @dynos[pid]
+    getDyno: (id, cb) ->
+        id = parseInt id
+        if dyno = @dynos[id]
             # Now get the stats about the process.
-            processes.getStats pid, (stats) ->
+            processes.getStats dyno.pid, (stats) ->
                 # Form a deep copy obj wo/ ref.
                 obj = {}
                 ( obj[key] = dyno[key] for key in [ 'port', 'pid', 'status' ] )
@@ -80,7 +45,7 @@ class Manifold
     # Get all dynos back.
     getDynos: (cb) ->
         fns = []
-        for pid, dyno of @dynos then do (dyno) ->
+        for id, dyno of @dynos then do (dyno) ->
             # Add a bound function to stats booster.
             fns.push (_cb) ->
                 processes.getStats dyno.pid, (stats) ->
@@ -98,26 +63,34 @@ class Manifold
             else cb dynos
 
     # Remove a dyno that has wound down.
-    removeDyno: (pid) -> delete @dynos[pid]
+    removeDyno: (id) -> delete @dynos[id]
     
     # Ask existing dynos to wind down.
     offlineDynos: ->
-        for pid, dyno of @dynos when dyno.status is 'up'
+        for id, dyno of @dynos when dyno.status is 'up'
             # Send the message.
-            dyno.ref.send 'Die'
+            dyno.process.send 'Die'
             # Set the status to going down.
             dyno.status = 'down'
             # Remove from available ports.
             idx = @ports.indexOf dyno.port
             @ports.splice idx, 1
 
-    # Save a dyno that has come online.
-    saveDyno: (dyno) ->
-        # The status.
-        dyno.status = 'up'
-        # The dict.
-        @dynos[dyno.pid] = dyno
-        # The port.
-        @ports.push dyno.port
+        # Now make all ready ones available for use.
+        for id, dyno of @dynos when dyno.status is 'ready'
+            dyno.status = 'up'
+            # Push to the stack of ports.
+            @ports.push dyno.port
+            # Say it.
+            winston.info "Dyno #{(dyno.id+'').bold} accepting connections on port #{(dyno.port+'').bold}"
+
+    # Generate a new shell dyno instance
+    newDyno: (name) ->
+        id = @id++
+        # Instantiate the obj and save on us.
+        @dynos[id] = dyno = new Dyno id, name, @
+
+        # Return the dyno.
+        dyno
 
 module.exports = Manifold
