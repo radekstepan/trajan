@@ -16,7 +16,7 @@ class Processes
         # Create if it does not exist.
         if fs.existsSync @file
             # Get previous list.
-            file = fs.readFileSync(@file).toString('utf-8')
+            file = fs.readFileSync @file, 'utf8'
             # Kill any previously running ones.
             for pid in JSON.parse(file) then do (pid) ->
                 winston.warn "Killing process #{(pid+'').bold}"

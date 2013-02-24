@@ -1,9 +1,10 @@
 #!/usr/bin/env coffee
-async   = require 'async'
-winston = require 'winston'
-tar     = require 'tar'
-zlib    = require 'zlib'
-path    = require 'path'
+child_process = require 'child_process'
+async         = require 'async'
+winston       = require 'winston'
+tar           = require 'tar'
+zlib          = require 'zlib'
+path          = require 'path'
 
 # Nice logging.
 winston.cli()
@@ -25,11 +26,9 @@ module.exports =
             # Unzip.
             req.pipe(zlib.Gunzip())
             # Untar.
-            .pipe(tar.Extract({ 'strip': true, 'path': path.resolve(__dirname, "../../#{temp}") }))
+            .pipe(tar.Extract({ 'strip': true, 'path': path = path.resolve(__dirname, "../../#{temp}") }))
             # Handle further...
             .on 'end', ->
-                winston.debug 'App piped'
-
                 # Generate new ids of shell dynos in sync.
                 ids = [] ; dynos = []
                 try
@@ -46,18 +45,22 @@ module.exports =
                 res.write JSON.stringify 'ids': ids
                 res.end()
 
-                # Now deploy all of them in async.
-                fns = ( for dyno in dynos then do (dyno) -> ( (cb) -> dyno.deploy temp, cb ) )
-                
-                async.parallel fns, (err, done) ->
-                    if err and err.length isnt 0 then return winston.error err
-                    winston.debug 'Finished deploying dynos'
+                winston.debug 'Installing dependencies through npm'
 
-                    # Now spawn all of them.
-                    fns = ( for dyno in dynos then do (dyno) -> ( (cb) -> dyno.spawn cb ) )
+                # Exec npm install.
+                child_process.exec "cd #{path} ; npm install -d", (err, stderr, stdout) ->
+                    # Now deploy all of them in async.
+                    fns = ( for dyno in dynos then do (dyno) -> ( (cb) -> dyno.deploy temp, cb ) )
+                    
                     async.parallel fns, (err, done) ->
                         if err and err.length isnt 0 then return winston.error err
-                        winston.debug 'Finished spawning dynos'
+                        winston.debug 'Finished deploying dynos'
 
-                        # Now we need to offline past dynos.
-                        manifold.offlineDynos()
+                        # Now spawn all of them.
+                        fns = ( for dyno in dynos then do (dyno) -> ( (cb) -> dyno.spawn cb ) )
+                        async.parallel fns, (err, done) ->
+                            if err and err.length isnt 0 then return winston.error err
+                            winston.debug 'Finished spawning dynos'
+
+                            # Now we need to offline past dynos.
+                            manifold.offlineDynos()
