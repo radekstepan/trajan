@@ -14,7 +14,7 @@ async.waterfall [ (cb) ->
 
 # Package up our app and stream it to the service.
 , (cfg, cb) ->
-    # Skip fils in `node_modules` directory.
+    # Skip files in `node_modules` directory.
     filter = (props) -> props.path.indexOf('/node_modules/') is -1
     # Make a stream.
     fstream.Reader({ 'path': './example-app', 'type': 'Directory', 'filter': filter })

@@ -2,23 +2,28 @@
 fs            = require 'fs'
 child_process = require 'child_process'
 path          = require 'path'
+winston       = require 'winston'
+
+{ cfg } = require path.resolve __dirname, '../samfelld.coffee'
+
+# Nice logging.
+winston.cli()
 
 class Processes
 
-    # FILE: './samfelld/processes.json'
+    # Link to the file.
+    file: path.resolve __dirname, '../processes.json'
 
     constructor: ->
-        # Get previous list.
-        # @pids = JSON.parse fs.readFileSync(@FILE).toString('utf-8')
-
-        # Kill any previously running ones.
-        # for pid in @pids
-        #     # TODO: Maybe `ps -p <pid>` to find out if a node process?
-        #     kill = child_process.spawn 'kill', [ pid ]
-
-        #     kill.stdout.on "data", (data) ->
-        #     kill.stderr.on "data", (data) ->
-        #     kill.on "exit", (code) ->
+        # Create if it does not exist.
+        if fs.existsSync @file
+            # Get previous list.
+            file = fs.readFileSync(@file).toString('utf-8')
+            # Kill any previously running ones.
+            for pid in JSON.parse(file) then do (pid) ->
+                winston.warn "Killing process #{(pid+'').bold}"
+                # TODO: Maybe `ps -p <pid>` to find out if a node process?
+                child_process.exec "kill #{pid}"
 
         # Start anew.
         @pids = []
@@ -29,7 +34,7 @@ class Processes
         @pids.push pid
 
         # Into a file.
-        # fs.writeFileSync @FILE, JSON.stringify(@pids, null, 4), 'utf-8'
+        fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf-8'
 
     # Remove a pid.
     remove: (pid) ->
@@ -39,7 +44,7 @@ class Processes
                 @pids.splice i, 0
 
         # Into a file.
-        # fs.writeFileSync @FILE, JSON.stringify(@pids, null, 4), 'utf-8'
+        fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf-8'
 
     # Get stats about a process.
     getStats: (pid, cb) ->
