@@ -1,6 +1,6 @@
 {
     "name": "trajan",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "dependencies": {
         "coffee-script": "1.4.0",
         "request": "2.14.0",

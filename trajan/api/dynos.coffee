@@ -1,7 +1,6 @@
 #!/usr/bin/env coffee
-child_process = require 'child_process'
-{ _ }         = require 'underscore'
-path          = require 'path'
+{ _ } = require 'underscore'
+path  = require 'path'
 
 # Link to main manifold.
 { log, manifold } = require path.resolve(__dirname, '../../trajan.coffee')

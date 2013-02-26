@@ -1,11 +1,11 @@
 #!/usr/bin/env coffee
-child_process = require 'child_process'
-{ _ }         = require 'underscore'
-async         = require 'async'
-tar           = require 'tar'
-zlib          = require 'zlib'
-path          = require 'path'
-fs            = require 'fs'
+{ exec } = require 'child_process'
+{ _ }    = require 'underscore'
+async    = require 'async'
+tar      = require 'tar'
+zlib     = require 'zlib'
+path     = require 'path'
+fs       = require 'fs'
 
 # Link to main manifold & config.
 { log, cfg, manifold } = require path.resolve(__dirname, '../../trajan.coffee')
@@ -66,20 +66,41 @@ module.exports =
                 log.debug 'Installing dependencies through npm'
 
                 # Exec npm install.
-                child_process.exec "cd #{dir} ; npm install -d", (err, stderr, stdout) ->
+                exec "cd #{dir} ; npm install -d", (err, stderr, stdout) ->
                     if err then cb err
-                    else cb null, temp, dynos
+                    else cb null, temp, dir, dynos
 
             # Dyno deploy.
-            , (temp, dynos, cb) ->
+            , (temp, dir, dynos, cb) ->
                 fns = ( for dyno in dynos then do (dyno) -> ( (_cb) -> dyno.deploy temp, _cb ) )
                 async.parallel fns, (err, done) ->
                     if err and err.length isnt 0 then cb err
-                    else cb null, dynos
+                    else cb null, dir, dynos
+
+            # Read the `config.json` file.
+            , (dir, dynos, cb) ->
+                log.debug 'Reading package.json file'
+
+                fs.readFile dir + '/package.json', 'utf8', (err, data) ->
+                    if err then cb err
+                    else
+                        # Parse the JSON file.
+                        json = JSON.parse data
+                        # Do we have the start script?
+                        unless json.scripts and start = json.scripts.start
+                            return cb 'Missing `scripts.start` in package.json'
+                        # How many parts does it have?
+                        if start.indexOf(' ') isnt -1
+                            return cb 'Cannot pass parameters in `scripts.start` in package.json'
+                        # Does it have a .js ending filename?
+                        if start.split('.').pop() isnt 'js'
+                            return cb 'Need a Node.js executable filename only in `scripts.start` in package.json'
+
+                        cb null, dynos, start
 
             # Dyno spawn.
-            , (dynos, cb) ->
-                fns = ( for dyno in dynos then do (dyno) -> ( (_cb) -> dyno.spawn _cb ) )
+            , (dynos, start, cb) ->
+                fns = ( for dyno in dynos then do (dyno) -> ( (_cb) -> dyno.spawn start, _cb ) )
                 async.parallel fns, (err, done) ->
                     if err and err.length isnt 0 then cb err
                     else

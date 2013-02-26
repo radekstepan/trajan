@@ -1,7 +1,7 @@
 #!/usr/bin/env coffee
-fs            = require 'fs'
-child_process = require 'child_process'
-path          = require 'path'
+fs       = require 'fs'
+{ exec } = require 'child_process'
+path     = require 'path'
 
 # Logging.
 { log } = require path.resolve __dirname, '../trajan.coffee'
@@ -31,7 +31,7 @@ class Processes
         @pids.push pid
 
         # # Into a file.
-        # fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf-8'
+        # fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf8'
 
     # Remove a pid.
     remove: (pid) ->
@@ -41,12 +41,12 @@ class Processes
                 @pids.splice i, 0
 
         # # Into a file.
-        # fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf-8'
+        # fs.writeFileSync @file, JSON.stringify(@pids, null, 4), 'utf8'
 
     # Get stats about a process.
     getStats: (pid, cb) ->
         # Total VM size in kB.
-        child_process.exec "ps -p #{pid} -o %cpu,%mem,cmd", (err, stdout, stderr) ->
+        exec "ps -p #{pid} -o %cpu,%mem,cmd", (err, stdout, stderr) ->
             if err or stderr.length isnt 0 then cb null
             else
                 # Trim whitespace from ends.

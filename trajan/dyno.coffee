@@ -1,9 +1,10 @@
 #!/usr/bin/env coffee
-async         = require 'async'
-child_process = require 'child_process'
-{ _ }         = require 'underscore'
-path          = require 'path'
-wrench        = require 'wrench'
+async     = require 'async'
+{ spawn } = require 'child_process'
+{ _ }     = require 'underscore'
+path      = require 'path'
+wrench    = require 'wrench'
+winston   = require 'winston'
 
 { log, cfg, processes } = require path.resolve(__dirname, '../trajan.coffee')
 
@@ -31,21 +32,23 @@ class Dyno
                 cb err
 
     # Spawn this instance after it has been unpacked.
-    spawn: (cb) ->
+    spawn: (start, cb) ->
+        log.debug "Spawning dyno #{(@id+'').bold}"
+
         # Change status.
         @status = 'spawning'
 
-        # App dir.
-        @process = child_process.fork "#{@dir}/start.js",
+        # Launch a Node.js process.
+        @process = spawn 'node', [ "#{@dir}/#{start}" ],
             # Boost with env vars from live config file.
             'env': _.extend @env, process.env
-            # Cannot pipe out to a file so make it silent.
-            'silent': true
+            # If I die, you die.
+            'detached': false
+            # Create an IPC channel between master & child.
+            'stdio': [ 'ignore', 'pipe', 'pipe', 'ipc' ] # stdin, stdout, stderr
 
         # Save pid.
         processes.save @pid = @process.pid
-
-        log.debug "Spawning dyno #{(@id+'').bold}"
 
         # Say when process is dead.
         @process.on 'exit', (code) =>
@@ -55,7 +58,12 @@ class Dyno
             # Remove from pids.
             processes.remove @pid
 
-        # Messaging from the process.
+        # Piped stdout & stderr.
+        if typeof(log.data) is 'function'
+            @process.stdout.on 'data', log.data
+            @process.stderr.on 'data', log.data
+
+        # IPC JSON response from a child Node.js process.
         @process.on 'message', (data) =>
             switch data.message
                 when 'online'
