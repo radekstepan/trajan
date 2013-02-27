@@ -17,7 +17,7 @@ module.exports.log = log = do ->
 
 # Read config.
 module.exports.cfg = cfg = do ->
-    obj = JSON.parse fs.readFileSync path.resolve(__dirname, './config.json'), 'utf8'
+    obj = require path.resolve __dirname, './config.json'
     # Fix the auth token and dyno cound in test mode.
     if process.env.NODE_ENV is 'test'
         obj.auth_token = 'abc'

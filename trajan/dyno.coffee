@@ -7,7 +7,7 @@ wrench    = require 'wrench'
 winston   = require 'winston'
 fs        = require 'fs'
 
-{ log, cfg, processes } = require path.resolve(__dirname, '../trajan.coffee')
+{ log, cfg, processes } = require path.resolve __dirname, '../trajan.coffee'
 
 class Dyno
 
