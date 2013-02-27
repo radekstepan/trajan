@@ -5,6 +5,7 @@ async     = require 'async'
 path      = require 'path'
 wrench    = require 'wrench'
 winston   = require 'winston'
+fs        = require 'fs'
 
 { log, cfg, processes } = require path.resolve(__dirname, '../trajan.coffee')
 
@@ -38,6 +39,14 @@ class Dyno
         # Change status.
         @status = 'spawning'
 
+        # stdin, stdout, stderr
+        stdio = [
+            'ignore'
+            fs.openSync(@dir + '/stdout.log', 'a')
+            fs.openSync(@dir + '/stderr.log', 'a')
+            'ipc'
+        ]
+
         # Launch a Node.js process.
         @process = spawn 'node', [ "#{@dir}/#{start}" ],
             # Boost with env vars from live config file.
@@ -45,7 +54,7 @@ class Dyno
             # If I die, you die.
             'detached': false
             # Create an IPC channel between master & child.
-            'stdio': [ 'ignore', 'pipe', 'pipe', 'ipc' ] # stdin, stdout, stderr
+            'stdio': stdio
 
         # Save pid.
         processes.save @pid = @process.pid
@@ -57,11 +66,6 @@ class Dyno
             @manifold.removeDyno @id
             # Remove from pids.
             processes.remove @pid
-
-        # Piped stdout & stderr.
-        if typeof(log.data) is 'function'
-            @process.stdout.on 'data', log.data
-            @process.stderr.on 'data', log.data
 
         # IPC JSON response from a child Node.js process.
         @process.on 'message', (data) =>
