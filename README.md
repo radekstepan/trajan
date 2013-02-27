@@ -24,12 +24,20 @@ And that is all folks. Some extras:
 
 Edit the `config.json` file with the following settings:
 
-* `proxy_port`: where should all the app requests be made to
-* `deploy_port`: where does the service live
-* `auth_token`: API token to use when deploying into the service
-* `apps_dir`: directory with deployed dynos
-* `temp_dir`: directory where newly arrived packages live
-* `dyno_count`: on deploy how many dyno instances to spawn
+<dl>
+    <dt>proxy_port</dt>
+    <dd>Where should all the app requests be made to.</dd>
+    <dt>deploy_port</dt>
+    <dd>Where does the service live.</dd>
+    <dt>auth_token</dt>
+    <dd>API token to use when deploying into the service.</dd>
+    <dt>apps_dir</dt>
+    <dd>Directory with deployed dynos.</dd>
+    <dt>temp_dir</dt>
+    <dd>Directory where newly arrived packages live.</dd>
+    <dt>dyno_count</dt>
+    <dd>On deploy how many dyno instances to spawn.</dd>
+</dl>
 
 Then start the service like so:
 
