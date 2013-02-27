@@ -21,29 +21,17 @@ module.exports =
             # Is value an int?
             if not isNaN(parseFloat(value)) and isFinite(value) then value = +value
 
-            # Where to?
+            # Boost the new env in memory.
+            cfg.env ?= {}
+            cfg.env[name] ?= {}
+            cfg.env[name][key] = value
+
+            # Save to a file.
             file = path.resolve __dirname, '../../config.json'
 
             async.waterfall [ (cb) ->
-                # Read the live config file.
-                fs.readFile file, 'utf8', (err, data) ->
-                    if err then cb err
-                    else
-                        try
-                            obj = JSON.parse data
-                        catch e
-                            cb e
-
-                        # Boost the new env.
-                        obj.env ?= {}
-                        obj.env[name] ?= {}
-                        obj.env[name][key] = value
-                        # Go on...
-                        cb null, obj
-
-            , (obj, cb) ->
                 # Write into the config file.
-                fs.writeFile file, JSON.stringify(obj, null, 4), (err) ->
+                fs.writeFile file, JSON.stringify(cfg, null, 4), (err) ->
                     if err then cb err
                     else cb null
             ], (err) ->
