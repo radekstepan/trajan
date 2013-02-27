@@ -89,12 +89,9 @@ module.exports =
                         # Do we have the start script?
                         unless json.scripts and start = json.scripts.start
                             return cb 'Missing `scripts.start` in package.json'
-                        # How many parts does it have?
-                        if start.indexOf(' ') isnt -1
-                            return cb 'Cannot pass parameters in `scripts.start` in package.json'
-                        # Does it have a .js ending filename?
-                        if start.split('.').pop() isnt 'js'
-                            return cb 'Need a Node.js executable filename only in `scripts.start` in package.json'
+                        # Does it match the profile?
+                        unless /^([^\ ]*)\.js$/.test start
+                            return cb 'Invalid `scripts.start` in package.json; provide a single Node.js file'
 
                         cb null, dynos, start
 
