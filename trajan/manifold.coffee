@@ -58,11 +58,21 @@ class Manifold
             if err then throw err
             else cb dynos
 
+    # 0 dynos and we are outta here.
+    exit: =>
+        if (Object.keys(@dynos)).length is 0
+            log.warn 'System shutting down'
+            process.exit 0
+
     # Remove a dyno that has wound down.
-    removeDyno: (id) -> delete @dynos[id]
+    removeDyno: (id) ->
+        delete @dynos[id]
+        @exit()
     
     # Ask existing dynos to wind down.
-    offlineDynos: ->
+    offline: =>
+        @exit()
+
         for id, dyno of @dynos when dyno.status is 'up'
             # Send the message.
             dyno.process.send 'Die'

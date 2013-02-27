@@ -5,7 +5,7 @@ request       = require 'request'
 child_process = require 'child_process'
 { _ }         = require 'underscore'
 
-{ start }     = require '../trajan.coffee'
+{ start, manifold }     = require '../trajan.coffee'
 
 CFG = null
 
@@ -17,6 +17,8 @@ describe 'Basic test', ->
         start (cfg) ->
             CFG = cfg
             done()
+
+    after (done) -> manifold.offline()
 
     describe 'deploy app', ->
         it 'spawns two dynos', (done) ->

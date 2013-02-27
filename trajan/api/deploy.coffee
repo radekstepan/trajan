@@ -103,7 +103,7 @@ module.exports =
                     else
                         log.debug 'Finished spawning dynos'
                         # Now we need to offline past dynos.
-                        manifold.offlineDynos()
+                        manifold.offline()
                         cb null
 
             ], (err, results) ->

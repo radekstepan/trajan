@@ -32,6 +32,9 @@ module.exports.processes = new Processes()
 Manifold = require './trajan/manifold.coffee'
 module.exports.manifold = manifold = new Manifold()
 
+# What to do on Ctrl-C?
+process.on 'SIGINT', -> manifold.offline
+
 # Start the shebang.
 module.exports.start = (cb) ->
     authReq = (req, res, next) ->
