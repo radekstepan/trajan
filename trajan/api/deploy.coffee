@@ -30,22 +30,9 @@ module.exports =
                 # Handle further...
                 .on 'end', -> cb null, temp, dir
 
-            # Get env vars for this app.
-            , (temp, dir, cb) ->
-                # Read the live config file.
-                fs.readFile path.resolve(__dirname, '../../config.json'), 'utf8', (err, data) ->
-                    if err then cb err
-                    else
-                        # Any pertinent config for us?
-                        c = JSON.parse(data)
-                        c.env ?= {}
-                        env = c.env[name] or {}
-
-                        cb null, temp, dir, env
-
             # Create shell dynos.
-            , (temp, dir, env, cb) ->
-                fns = ( ( (_cb) -> manifold.newDyno(name, env, _cb) ) for i in [0...cfg.dyno_count] )
+            , (temp, dir, cb) ->
+                fns = ( ( (_cb) -> manifold.newDyno(name, cfg.env[name] or {}, _cb) ) for i in [0...cfg.dyno_count] )
                 async.parallel fns, (err, dynos) ->
                     if err and err.length isnt 0
                         res.writeHead 500, 'content-type': 'application/json'

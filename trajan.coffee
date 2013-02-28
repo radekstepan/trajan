@@ -22,6 +22,9 @@ module.exports.cfg = cfg = do ->
     if process.env.NODE_ENV is 'test'
         obj.auth_token = 'abc'
         obj.dyno_count = 2
+    # Always have an env.
+    obj.env = {}
+    # Done.
     obj
 
 # Load processes.
