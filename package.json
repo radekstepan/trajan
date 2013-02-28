@@ -1,6 +1,6 @@
 {
     "name": "trajan",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "dependencies": {
         "coffee-script": "1.4.0",
         "request": "2.14.0",
@@ -13,7 +13,6 @@
         "http-proxy": "0.8.7",
         "async": "0.2.5",
         "tar": "0.1.16",
-        "zlib": "1.0.5",
         "fstream": "0.1.22",
         "wrench": "1.4.4",
         "mocha": "1.8.1",

@@ -74,7 +74,7 @@ module.exports.start = (cb) ->
                 res.end 'No apps online'
 
         # Start proxy.
-        httpProxy.createServer(onRoute).listen cfg.proxy_port
-        log.info "Proxy listening on port #{(cfg.proxy_port+'').bold}"
+        httpProxy.createServer(onRoute).listen cfg.proxy_port, ->
+            log.info "Proxy listening on port #{(cfg.proxy_port+'').bold}"
 
-        if cb and typeof(cb) is 'function' then cb cfg
+            if cb and typeof(cb) is 'function' then cb cfg
